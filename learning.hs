@@ -1,4 +1,4 @@
-replaceNth :: Double -> a -> [a] -> [a]
+replaceNth :: Int -> a -> [a] -> [a]
 replaceNth _ _ [] = []
 replaceNth n newVal (x:xs)
  | n == 0 = newVal:xs
@@ -10,7 +10,7 @@ replaceNth n newVal (x:xs)
 -- | row == 0 = replaceNth col newVal ls
 -- | otherwise = l:replaceNthRow (row-1) col newVal xs
 
-change_elem :: Double -> Double -> a -> [[a]] -> [[a]]
+change_elem :: Int -> Int -> a -> [[a]] -> [[a]]
 -- empty list case
 change_elem _ _ _ [] = []
 
@@ -25,5 +25,5 @@ change_elem row col x xs =
         modified_row = replaceNth col x row_to_replace_in
     in replaceNth row modified_row xs
 
-getVal :: Double -> Double -> [[a]] -> a
+getVal :: Int -> Int -> [[a]] -> a
 getVal row col ls = (ls !! row) !! col
