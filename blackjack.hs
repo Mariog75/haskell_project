@@ -2,6 +2,7 @@ import System.Random
 import Data.List
 import Text.Printf
 import BST
+import Learning
 
 -- a blackjack simulator to measure effectiveness of tactics
 
@@ -60,9 +61,13 @@ possibleHandTotals (card:cards) runningTotals =
   possibleHandTotals cards newTotals
   where newTotals = [total + value | total <- runningTotals, value <- cardValues card]
 
-data Score x = Value Int | Blackjack | Bust deriving (Show, Ord, Eq)
+data Score = Value Int | Blackjack | Bust deriving (Show, Ord, Eq)
 
-handScore :: Hand -> Score Int
+scoreInt :: Score -> Int
+scoreInt (Value x) = x
+
+
+handScore :: Hand -> Score
 handScore hand
   | null notBustTotals = Bust
   | handIsBlackjack hand = Blackjack
@@ -81,12 +86,38 @@ dealerNextMove hand
   where score = handScore hand
 
 -- very simple player for the time being
-playerNextMove :: Hand -> Card -> Move
-playerNextMove playerHand dealerVisibleCard
-  | playerScore > Value 16 = Stand
-  | playerScore > Value 12 && dealerScore < Value 7 = Stand
-  | playerScore == Value 11 || playerScore == Value 10 = DoubleDown
-  | otherwise = Hit
+playerNextMove :: Hand -> Card -> [[Int]] -> (Move, [[Int]])
+playerNextMove playerHand dealerVisibleCard lst
+  | playerScore == Value 12 = if getVal 0 1 lst < 20 then (Hit, changeElem 0 1 ((getVal 0 1 lst)+1) lst)
+      else if ((getVal 0 0 lst) / (getVal 0 1 lst)) < 0.50 then (Stand, changeElem 0 1 ((getVal 0 1 lst)+1) lst)
+      else (Hit, changeElem 0 1 ((getVal 0 1 lst)+1) lst)
+  | playerScore == Value 13 = if getVal 1 1 lst < 20 then (Hit, changeElem 1 1 ((getVal 1 1 lst)+1) lst)
+      else if ((getVal 1 0 lst) / (getVal 1 1 lst)) < 0.50 then (Stand, changeElem 1 1 ((getVal 1 1 lst)+1) lst)
+      else (Hit, changeElem 1 1 ((getVal 1 1 lst)+1) lst)
+  | playerScore == Value 14 = if getVal 2 1 lst < 20 then (Hit, changeElem 2 1 ((getVal 2 1 lst)+1) lst)
+      else if ((getVal 2 0 lst) / (getVal 2 1 lst)) < 0.50 then (Stand, changeElem 2 1 ((getVal 2 1 lst)+1) lst)
+      else (Hit, changeElem 2 1 ((getVal 2 1 lst)+1) lst)
+  | playerScore == Value 15 = if getVal 3 1 lst < 20 then (Hit, changeElem 3 1 ((getVal 3 1 lst)+1) lst)
+      else if ((getVal 3 0 lst) / (getVal 3 1 lst)) < 0.50 then (Stand, changeElem 3 1 ((getVal 3 1 lst)+1) lst)
+      else (Hit, changeElem 3 1 ((getVal 3 1 lst)+1) lst)
+  | playerScore == Value 16 = if getVal 4 1 lst < 20 then (Hit, changeElem 4 1 ((getVal 4 1 lst)+1) lst)
+      else if ((getVal 4 0 lst) / (getVal 4 1 lst)) < 0.50 then (Stand, changeElem 4 1 ((getVal 4 1 lst)+1) lst)
+      else (Hit, changeElem 4 1 ((getVal 4 1 lst)+1) lst)
+  | playerScore == Value 17 = if getVal 5 1 lst < 20 then (Hit, changeElem 5 1 ((getVal 5 1 lst)+1) lst)
+      else if ((getVal 5 0 lst) / (getVal 5 1 lst)) < 0.50 then (Stand, changeElem 5 1 ((getVal 5 1 lst)+1) lst)
+      else (Hit, changeElem 5 1 ((getVal 5 1 lst)+1) lst)
+  | playerScore == Value 18 = if getVal 6 1 lst < 20 then (Hit, changeElem 6 1 ((getVal 6 1 lst)+1) lst)
+      else if ((getVal 6 0 lst) / (getVal 6 1 lst)) < 0.50 then (Stand, changeElem 6 1 ((getVal 6 1 lst)+1) lst)
+      else (Hit, changeElem 6 1 ((getVal 6 1 lst)+1) lst)
+  | playerScore == Value 19 = if getVal 7 1 lst < 20 then (Hit, changeElem 7 1 ((getVal 7 1 lst)+1) lst)
+      else if ((getVal 7 0 lst) / (getVal 7 1 lst)) < 0.50 then (Stand, changeElem 7 1 ((getVal 7 1 lst)+1) lst)
+      else (Hit, changeElem 7 1 ((getVal 7 1 lst)+1) lst)
+  | playerScore == Value 20 = if getVal 8 1 lst < 20 then (Hit, changeElem 8 1 ((getVal 8 1 lst)+1) lst)
+      else if ((getVal 8 0 lst) / (getVal 8 1 lst)) < 0.50 then (Stand, changeElem 8 1 ((getVal 8 1 lst)+1) lst)
+      else (Hit, changeElem 8 1 ((getVal 8 1 lst)+1) lst)
+  | playerScore == Value 21 = (Stand, lst)
+  | playerScore == Value 11 || playerScore == Value 10 = (DoubleDown, lst)
+  | otherwise = (Hit, lst)
   where playerScore = handScore playerHand
         dealerScore = handScore [dealerVisibleCard]
 
@@ -104,66 +135,67 @@ moneyMade _   Push         = 0
 moneyMade bet Win          = bet
 moneyMade bet BlackjackWin = ceiling $ (1.5 :: Double) * fromIntegral bet
 
-findOutcome :: Score Int -> Score Int -> Outcome
-findOutcome Bust _ = Loss
-findOutcome Blackjack _ = BlackjackWin
-findOutcome _ Bust = Win
-findOutcome playerScore dealerScore
-  | playerScore > dealerScore = Win
-  | playerScore == dealerScore = Push
-  | otherwise = Loss
+findOutcome :: Score -> Score -> [[Int]] -> (Outcome, [[Int]])
+findOutcome Bust _ lst= (Loss,lst)
+findOutcome Blackjack _ lst= (BlackjackWin,lst)
+findOutcome _ Bust lst= (Win,lst)
+findOutcome playerScore dealerScore lst
+  | playerScore > dealerScore = (Win, (changeElem (scoreInt(playerScore)-12) 0 ((getVal (scoreInt (playerScore)-12) 0 lst)+1) lst))
+  | playerScore == dealerScore = (Push, lst)
+  | otherwise = (Loss, lst)
 
 data GameState = PlayerPlaying | DealerPlaying
 
 -- we pass the bet during the round too, since the bet can change
-roundOutcome :: Money -> GameState -> Hand -> Hand -> Deck -> (Outcome, Money)
-roundOutcome _ _ _ _ [] = error "Deck is empty!"
-roundOutcome bet PlayerPlaying playerHand dealerHand (card:cards)
-  | playerScore == Bust      = roundOutcome bet DealerPlaying playerHand dealerHand (card:cards)
-  | playerMove == Stand      = roundOutcome bet DealerPlaying playerHand dealerHand (card:cards)
-  | playerMove == Hit        = roundOutcome bet PlayerPlaying (card:playerHand) dealerHand cards
-  | playerMove == DoubleDown = roundOutcome (2 * bet) DealerPlaying (card:playerHand) dealerHand cards
+roundOutcome :: Money -> GameState -> Hand -> Hand -> Deck -> [[Int]] -> ((Outcome,[[Int]]), Money)
+roundOutcome _ _ _ _ [] _ = error "Deck is empty!"
+roundOutcome bet PlayerPlaying playerHand dealerHand (card:cards) lst
+  | playerScore == Bust      = roundOutcome bet DealerPlaying playerHand dealerHand (card:cards) lst
+  | playerMove == Stand      = roundOutcome bet DealerPlaying playerHand dealerHand (card:cards) lst
+  | playerMove == Hit        = roundOutcome bet PlayerPlaying (card:playerHand) dealerHand cards lst
+  | playerMove == DoubleDown = roundOutcome (2 * bet) DealerPlaying (card:playerHand) dealerHand cards lst
   where playerScore = handScore playerHand
-        playerMove = playerNextMove playerHand (head dealerHand)
+        (playerMove, lst) = playerNextMove playerHand (head dealerHand) lst
 
-roundOutcome bet DealerPlaying playerHand dealerHand (card:cards)
-  | dealerScore == Bust = (findOutcome playerScore dealerScore, bet)
-  | dealerMove == Hit   = roundOutcome bet DealerPlaying playerHand (card:dealerHand) cards
-  | dealerMove == Stand = (findOutcome playerScore dealerScore, bet)
+roundOutcome bet DealerPlaying playerHand dealerHand (card:cards) lst
+  | dealerScore == Bust = (findOutcome playerScore dealerScore lst, bet)
+  | dealerMove == Hit   = roundOutcome bet DealerPlaying playerHand (card:dealerHand) cards lst
+  | dealerMove == Stand = (findOutcome playerScore dealerScore lst, bet)
   where playerScore = handScore playerHand
         dealerScore = handScore dealerHand
         dealerMove = dealerNextMove dealerHand
 
-roundTakings :: Money -> Hand -> Hand -> Deck -> Money
-roundTakings bet playerHand dealerHand remainingDeck = moneyMade finalBet outcome
-  where (outcome, finalBet) = roundOutcome bet PlayerPlaying playerHand dealerHand remainingDeck
+roundTakings :: Money -> Hand -> Hand -> Deck -> [[Int]] -> ([[Int]], Money)
+roundTakings bet playerHand dealerHand remainingDeck lst = (lstUpdated, (moneyMade finalBet outcome))
+  where ((outcome, lstUpdated), finalBet) = roundOutcome bet PlayerPlaying playerHand dealerHand remainingDeck lst
 
 -- play a game with the current strategy
-playRound :: Money -> IO Money
-playRound bet = do
+playRound :: Money -> [[Int]] -> ([[Int]], IO Money)
+playRound bet lst = do
   shuffledDeck <- shuffleDeck
   -- we don't deal cards in an alternating order, but it makes no difference
   let (playerHand, remainingDeck) = dealCards 2 shuffledDeck
       (dealerHand, remainingDeck') = dealCards 2 remainingDeck
-      takings = roundTakings bet playerHand dealerHand remainingDeck'
+      takings = roundTakings bet playerHand dealerHand remainingDeck' lst
   return takings
 
 -- play a game N times and work out the overall takings/losses for the
 -- given bet size
-play :: Integer -> Money -> IO Money
-play 0 _ = return 0
-play count bet =
-  play' count bet 0
+play :: Integer -> Money -> [[Int]] -> (IO Money)
+play 0 _ lst = return 0
+play count bet lst =
+  play' count bet 0 lst
   where
-    play' 0 _ accum = return accum
-    play' count' bet' accum = do
-      takings <- playRound bet'
-      play' (count' - 1) bet' (accum + takings)
+    play' 0 _ accum lst = return accum
+    play' count' bet' accum lst= do
+      (lst', takings) <- playRound bet' lst
+      play' (count' - 1) bet' (accum + (takings)) lst'
 
 main = do
-  let iterations = 10000 :: Integer
+  let iterations = 1000 :: Integer
       bet = 10 :: Money
-  takings <- play iterations bet :: IO Money
+  let lst = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+  takings <- play iterations bet lst :: IO Money
   let houseEdge = fromInteger (-1 * takings) / fromInteger (bet * iterations)
       housePercentage = 100 * houseEdge :: Double
   printf "After %d $%d hands, total money made was $%d (house made %.2f%%).\n"

@@ -1,3 +1,5 @@
+module Learning where
+
 replaceNth :: Int -> a -> [a] -> [a]
 replaceNth _ _ [] = []
 replaceNth n newVal (x:xs)
@@ -10,17 +12,17 @@ replaceNth n newVal (x:xs)
 -- | row == 0 = replaceNth col newVal ls
 -- | otherwise = l:replaceNthRow (row-1) col newVal xs
 
-change_elem :: Int -> Int -> a -> [[a]] -> [[a]]
+changeElem :: Int -> Int -> a -> [[a]] -> [[a]]
 -- empty list case
-change_elem _ _ _ [] = []
+changeElem _ _ _ [] = []
 
 -- have arrived at the element to change`
-change_elem 0 0 x ((y:ys):ls) = (x:ys):ls
+changeElem 0 0 x ((y:ys):ls) = (x:ys):ls
 
 -- reduce the column until we find the element to change
-change_elem 0 col x ((y:ys):ls) = [[y]] ++ change_elem 0 (col-1) x (ys:ls)
+changeElem 0 col x ((y:ys):ls) = [[y]] ++ changeElem 0 (col-1) x (ys:ls)
 
-change_elem row col x xs =
+changeElem row col x xs =
     let row_to_replace_in = xs !! row
         modified_row = replaceNth col x row_to_replace_in
     in replaceNth row modified_row xs
