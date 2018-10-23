@@ -1,7 +1,6 @@
 import System.Random
 import Data.List
 import Text.Printf
-import BST
 import Learning
 
 -- a blackjack simulator to measure effectiveness of tactics
@@ -176,20 +175,20 @@ playRound bet lst = do
   -- we don't deal cards in an alternating order, but it makes no difference
   let (playerHand, remainingDeck) = dealCards 2 shuffledDeck
       (dealerHand, remainingDeck') = dealCards 2 remainingDeck
-      takings = roundTakings bet playerHand dealerHand remainingDeck' lst
-  return takings
+      (lst', takings) = roundTakings bet playerHand dealerHand remainingDeck' lst
+  return (lst', takings)
 
 -- play a game N times and work out the overall takings/losses for the
 -- given bet size
-play :: Integer -> Money -> [[Int]] -> (IO Money)
+play :: Integer -> Money -> [[Int]] -> IO Money
 play 0 _ lst = return 0
 play count bet lst =
   play' count bet 0 lst
   where
-    play' 0 _ accum lst = return accum
-    play' count' bet' accum lst= do
-      (lst', takings) <- playRound bet' lst
-      play' (count' - 1) bet' (accum + (takings)) lst'
+    play' 0 _ accum lst' = return accum
+    play' count' bet' accum lst'= do
+      (lst', takings) <- playRound bet' lst'
+      play' (count' - 1) bet' (accum + takings) lst'
 
 main = do
   let iterations = 1000 :: Integer
